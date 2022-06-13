@@ -4,7 +4,7 @@ using ValstroStarWars.Models;
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
+using System.Text.Json;
 using SocketIOClient;
 
 
@@ -19,7 +19,9 @@ public class program
 
     public static async Task MainAsync() 
     {
-        bool receiving = false;
+        bool procesing = false;
+
+        Queue<SocketIOResponse> list= new Queue<SocketIOResponse>();
 
         try {
             Console.WriteLine("Welcome to Valstro Star Wars SocketIO Machine");
@@ -27,37 +29,54 @@ public class program
 
             _client.On("search", response =>
             {
-                // You can print the returned data first to decide what to do next.
-                // output: ["hi client"]
-                Console.WriteLine("Respuesta");
-                Console.WriteLine(response);
-
-                string text = response.GetValue<string>();
-                receiving = false;
+                // Add to Queue to be procesed
+                list.Enqueue(response);
             });
 
 
             _client.OnConnected += async (sender, e) =>
             {
-                // Emit a string
+                // Connected to client.
                 Console.WriteLine("Connected to client");
             };
 
             await _client.ConnectAsync();
 
 
-
+            
             if (_client.Connected) 
             {
-                Console.Write("What do you want to search:");
-                string search = Console.ReadLine();
+                bool ask = true;
+                while(ask)         
+                {
+                    Console.Write("What do you want to search:");
+                    string? search = Console.ReadLine();
+                    
 
-                await _client.EmitAsync("search", new Search {Query = search});
-                receiving = true;
-                while (receiving);
+                    await _client.EmitAsync("search", new Search {Query = search}); 
+                    procesing = true;
+
+                    while (procesing) {
+                        while(list.Count != 0) 
+                        {
+                            var res = list.Dequeue();
+                            //Console.WriteLine(res);
+                            var sres = res.GetValue<SearchResult>(0);
+                            Console.WriteLine("({0}/{1}) - {2} - [{3}]", sres.Page, sres.ResultCount, sres.Name, sres.Films);
+
+                            if (sres.Page == sres.ResultCount) procesing = false;
+                        }
+
+                    }
+
+                    Console.WriteLine("Streaming finished.");
+                    Console.WriteLine("Another search?. (Y/n)");
+                    string? anotherTry = Console.ReadLine();
+                    if (anotherTry.ToLower()!= "y") ask = false;
+                }
             }
 
-            
+
         } catch (Exception ex){
             Console.WriteLine("EX => " + ex.Message);
         }

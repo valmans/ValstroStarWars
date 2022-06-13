@@ -41,3 +41,5 @@ Compile and Run
 
 Video Demo:
 ValstroStarWarsDemo.webm
+
+Author: Manuel Valdes

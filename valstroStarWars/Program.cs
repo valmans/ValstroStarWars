@@ -20,40 +20,53 @@ public class program
     public static async Task MainAsync() 
     {
         bool procesing = false;
-
+        string server = "http://localhost:3000/";
         Queue<SocketIOResponse> list= new Queue<SocketIOResponse>();
 
         try {
-            Console.WriteLine("Welcome to Valstro Star Wars SocketIO Machine");
-            var _client = new SocketIO("http://localhost:3000/");
+            Console.WriteLine("Welcome to Valstro Star Wars SocketIO Service");
+            var client = new SocketIO(server);
 
-            _client.On("search", response =>
+            client.On("search", response =>
             {
                 // Add to Queue to be procesed
                 list.Enqueue(response);
             });
 
+            client.On("error", response =>
+            {
+                // Add to Queue to be procesed
+                Console.WriteLine("ERROR => " + response);    
+            });
 
-            _client.OnConnected += async (sender, e) =>
+
+            client.OnConnected += async (sender, e) =>
             {
                 // Connected to client.
-                Console.WriteLine("Connected to client");
+                Console.WriteLine("Connected to server: " + server);
+               
             };
 
-            await _client.ConnectAsync();
+            client.OnError += async (sender, e) =>
+            {
+                // Connected to client.
+                Console.WriteLine("ERROR => " + e.ToString());    
+            };
+
+            await client.ConnectAsync();
 
 
             
-            if (_client.Connected) 
+            if (client.Connected) 
             {
                 bool ask = true;
                 while(ask)         
                 {
-                    Console.Write("What do you want to search:");
+                    Console.Write("\n - What character would you like to search for? => ");
                     string? search = Console.ReadLine();
                     
 
-                    await _client.EmitAsync("search", new Search {Query = search}); 
+                    await client.EmitAsync("search", new Search {Query = search}); 
                     procesing = true;
 
                     while (procesing) {
@@ -62,18 +75,23 @@ public class program
                             var res = list.Dequeue();
                             //Console.WriteLine(res);
                             var sres = res.GetValue<SearchResult>(0);
-                            Console.WriteLine("({0}/{1}) - {2} - [{3}]", sres.Page, sres.ResultCount, sres.Name, sres.Films);
-
+                            if (sres.ResultCount == -1) {
+                                Console.WriteLine("\n - ERROR: '{0}' ", sres.Error);
+                            } else {
+                                Console.WriteLine(" - ({0}/{1}) - {2} - [{3}]", sres.Page, sres.ResultCount, sres.Name, sres.Films);   
+                            }
                             if (sres.Page == sres.ResultCount) procesing = false;
                         }
 
                     }
 
-                    Console.WriteLine("Streaming finished.");
-                    Console.WriteLine("Another search?. (Y/n)");
-                    string? anotherTry = Console.ReadLine();
-                    if (anotherTry.ToLower()!= "y") ask = false;
-                }
+                    Console.WriteLine(" - Streaming finished.\n");
+                    
+                    
+                } 
+
+            } else {
+                Console.WriteLine("ERROR => Cannot connect to server: " + server);    
             }
 
 

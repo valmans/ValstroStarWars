@@ -39,3 +39,5 @@ Compile and Run
 - Requirements .net runtime 6.0
 - Command /valstroStarWars$ dotnet run [enter]
 
+Video Demo:
+ValstroStarWarsDemo.webm

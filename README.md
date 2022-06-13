@@ -25,14 +25,14 @@ Libraries:
 
 Comments:
 - Used main Socket.IO functions:
-  - onConnected, .on, .onError, Dispose
+  - onConnected, .on, .onError, Dispose, onDisconnected
 - I used a Queue to store the server response async.
 - Then out of the listener I check if the transmition is ended and process the data in the Queue.
-- If exists an error shot it.
+- If exists an error show it.
 
-Improvements to do for a production devlivery:
-- Reconnection flow in case the server connection lost.
-- Process to validate data in connection interrupted
+Improvements to do:
+- Reconnection flow in case the server connection lost. 
+- Process to validate data if connection interrupted
 
 Compile and Run
 - start server: Run the following command at a terminal: `docker run -p 3000:3000 clonardo/socketio-backend`

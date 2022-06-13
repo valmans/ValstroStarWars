@@ -5,5 +5,5 @@ using System.Text.Json.Serialization;
 public class Search 
 {
     [JsonPropertyName("query")]
-    public string? Query {get; set;}
+    public string Query {get; set;}
 }

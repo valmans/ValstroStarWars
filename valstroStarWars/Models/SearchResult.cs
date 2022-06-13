@@ -11,9 +11,9 @@ public class SearchResult
     [JsonPropertyName("name")]
     public string Name {get; set;}
     [JsonPropertyName("films")]
-    public string? Films {get; set;}
+    public string Films {get; set;}
     [JsonPropertyName("error")]
-    public string? Error {get; set;}
+    public string Error {get; set;}
     
     
     
